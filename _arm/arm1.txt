@@ -1,0 +1,85 @@
+#include "Board_LED.h"
+//#include "Board_Buttons.h"              // ::Board Support:Buttons
+#include "LPC17xx.h"                    // Device header
+
+#define LED_ON_LCD
+
+void send_string(char* o){
+	int i;
+	int counter = 0;
+	if(LPC_UART0->LSR & 1){
+		LPC_UART0->THR = LPC_UART0->RBR + 1;
+		while(*o){
+			LPC_UART0->THR = *o;
+			o = o+1;
+		}
+		//while()
+		
+
+		i = 10000000;
+		while(i){
+			i = i-1;
+		}
+	}
+}
+
+int main(void){
+	int i = 1000;
+	uint32_t button_state;
+	uint32_t display_number = 0;
+	LED_Initialize();
+	//Buttons_Initialize();
+	
+	PIN_Configure(0, 2, 1, 2, 0);
+	PIN_Configure(0, 3, 1, 2, 0);
+	
+	LPC_UART0->LCR = (1 << 7);
+	LPC_UART0->DLM = 0;
+	LPC_UART0->DLL = 13;
+	LPC_UART0->LCR = (3 << 0);
+	//LPC_UART0->LCR = (0 << 7);
+	
+	char tablica[] = "a";
+	//tablica[0] = 1;
+	//int *p;
+	//p = tablica;
+	while(1){
+		send_string(tablica);
+	}
+
+	
+	/*
+	while(1){
+		button_state = Buttons_GetState();
+		
+		if(button_state){
+			
+			display_number = display_number + 1;
+			LED_SetOut (display_number);
+			
+			i = 10000000;
+			while(i){
+				i = i-1;
+			}
+			/ *
+			LED_SetOut (0xAC);
+			i = 10000000;
+			while(i){
+				i = i-1;
+			}
+			* /
+		}
+	}
+	*/
+	return 0;
+}
+
+/*
+
+ale nie wiem czy przypadkiem ta zakomentowana linijka:
+//LPC_UART0->THR = LPC_UART0->RBR + 1;
+nie wysyla na konsole to co od niej odebrala
++1
+w sensie odbiera z konsoli "a", to odpowiada "b"
+czyli dwustronna komunikacja
+*/

@@ -1,0 +1,275 @@
+#include "lcd_lib/Open1768_LCD.h"
+#include "lcd_lib/LCD_ILI9325.h"
+#include "lcd_lib/asciiLib.h"
+#include "Board_LED.h"
+#include "LPC17xx.h"                    // Device header
+
+#define N 2
+
+
+volatile uint32_t msTicks;
+
+void SysTick_Handler(void)  {                               // SysTick interrupt Handler.
+  msTicks++;                                                 //  See startup file startup_LPC17xx.s for SysTick vector
+}
+
+void wait(int d){
+	msTicks = 0;
+	while(msTicks <= d);
+}
+
+void sleep(int j)
+{
+	while(j > 0)
+		--j;
+}
+
+char send_string(char* o){
+	int i;
+	int counter = 0;
+	if(LPC_UART0->LSR & 1){
+		LPC_UART0->THR = LPC_UART0->RBR + 1;
+		//while(*o){
+		//	LPC_UART0->THR = *o;
+		//	o = o+1;
+		//}
+		//while()
+		
+		i = 10000000;
+		while(i){
+			i = i-1;
+		}
+	}
+	char aaa[] = "a";
+	return *aaa;
+	//else{
+	//	LPC_UART0->THR = 0;
+	//}
+}
+
+void send_string_uart(char* o){
+	int i;
+	int counter = 0;
+	if(LPC_UART0->LSR & 1){
+		LPC_UART0->THR = LPC_UART0->RBR + 1;
+		while(*o){
+			LPC_UART0->THR = *o;
+			o = o+1;
+		}
+		//while()
+		
+		i = 10000000;
+		while(i){
+			i = i-1;
+		}
+	}
+	//else{
+	//	LPC_UART0->THR = 0;
+	//}
+}
+
+void print_letter_lcd(char* letter, int y_pos, int x_pos)
+{	
+	
+			int k;
+			int counter = 0;
+			if(LPC_UART0->LSR & 1){
+			LPC_UART0->THR = LPC_UART0->RBR + 1;
+			char myLetter = LPC_UART0->THR;
+			while(*letter){// *
+				  //LPC_UART0->THR = *letter;// *letter
+			    letter = letter+1;
+			}
+		//while()
+		
+		k = 10000000;
+		while(k){
+			k = k-1;
+		}	
+			
+			unsigned char pBuffer[N];
+			unsigned char mask = 128;
+			int j = 0;
+			int i = 0;
+			GetASCIICode(1, pBuffer, letter);//
+			lcdWriteReg(ADRX_RAM, x_pos);
+			lcdWriteReg(ADRY_RAM, y_pos);
+			for( i = 0; i < N; ++i)
+			{
+					for( j = 0; j < 8; ++j)
+					{
+						
+						if (pBuffer[i]& mask)// 
+						{	
+								lcdWriteReg(ADRX_RAM, x_pos - i);
+								lcdWriteReg(ADRY_RAM, y_pos + j);
+								lcdWriteReg(DATA_RAM, LCDRed);//LCDMagenta
+						}
+						mask = mask >> 1;
+					}
+					mask = 128;
+			}
+				
+		
+	}
+
+			/*
+			unsigned char pBuffer[N];
+			unsigned char mask = 128;
+			int j = 0;
+			int i = 0;
+			GetASCIICode(1, pBuffer, *letter);// *letter
+			lcdWriteReg(ADRX_RAM, x_pos);
+			lcdWriteReg(ADRY_RAM, y_pos);
+			for( i = 0; i < N; ++i)
+			{
+					for( j = 0; j < 8; ++j)
+					{
+						
+						if (pBuffer[i] & mask)//pBuffer
+						{	
+								lcdWriteReg(ADRX_RAM, x_pos - i);
+								lcdWriteReg(ADRY_RAM, y_pos + j);
+								lcdWriteReg(DATA_RAM, LCDRed);//LCDMagenta
+						}
+						mask = mask >> 1;
+					}
+					mask = 128;
+			}
+			*/
+}
+
+
+void print_letter(char letter, int y_pos, int x_pos)
+{
+
+			int j = 0;
+			int i = 0;
+			unsigned char pBuffer[N];
+			unsigned char mask = 128;
+
+			GetASCIICode(1, pBuffer, letter);
+			lcdWriteReg(ADRX_RAM, x_pos);
+			lcdWriteReg(ADRY_RAM, y_pos);
+			for( i = 0; i < N; ++i)
+			{
+					for( j = 0; j < 8; ++j)
+					{
+						
+						if (pBuffer[i] & mask)
+						{	
+								lcdWriteReg(ADRX_RAM, x_pos - i);
+								lcdWriteReg(ADRY_RAM, y_pos + j);
+								lcdWriteReg(DATA_RAM, LCDRed);//LCDMagenta
+						}
+						mask = mask >> 1;
+					}
+					mask = 128;
+			}
+}
+
+
+void print_string(char* string, int string_size, int y_pos, int x_pos)
+{
+	int i;
+	
+	for(i=0; i <  string_size; ++i)
+	{
+		print_letter(string[i], y_pos, x_pos);
+		y_pos += 8;
+	}
+	
+}
+
+void print_string_lcd(char* string, int string_size, int y_pos, int x_pos)
+{
+	int i;
+	
+	for(i=0; i <  string_size; ++i)
+	{
+		print_letter_lcd(string, y_pos, x_pos);
+		y_pos += 8;
+	}
+	
+}
+
+int main(void)
+{
+	const int lcd_size = LCD_MAX_X * LCD_MAX_Y;
+	int j = 0;
+	int i = 0;
+	unsigned char pBuffer[N];
+	unsigned char mask = 128;
+	
+	int y_pos, x_pos;
+	char string[] = "ABCD";
+	char string2[] = "EFGH";
+
+	
+	lcdConfiguration();
+	//temp = lcdReadReg(OSCIL_ON);
+	init_ILI9325();
+	lcdWriteReg(ADRX_RAM, 0);
+	lcdWriteReg(ADRY_RAM, 0);
+	
+	/*
+	while(j < lcd_size/2)
+	{
+		lcdWriteReg(DATA_RAM, LCDWhite);
+		++j;
+	}
+		while(j < lcd_size)
+	{
+		lcdWriteReg(DATA_RAM, LCDRed);
+		++j;
+	}
+	*/
+	//print_string(string, sizeof(string)-1, 0, LCD_MAX_X);
+	//print_string(string2, sizeof(string2)-1, 0, LCD_MAX_X-16);
+	
+	//while(1);
+	
+	
+	//int i = 1000;
+	uint32_t display_number = 0;
+	LED_Initialize();
+	
+	PIN_Configure(0, 2, 1, 2, 0);
+	PIN_Configure(0, 3, 1, 2, 0);
+	
+	LPC_UART0->LCR = (1 << 7);
+	LPC_UART0->DLM = 0;
+	LPC_UART0->DLL = 13;
+	LPC_UART0->LCR = (3 << 0);
+	//LPC_UART0->LCR = (0 << 7);
+	
+	char tablica[] = "A";
+	//tablica[0] = 1;
+	//int *p;
+	//p = tablica;
+	while(1){
+	//send_string(tablica);
+	//char string4[1];
+	//string4[0] = send_string(tablica);
+	//	send_string_uart(string4);
+	//char string4[] = "EFGH";
+	//print_string(tablica, 0, LCD_MAX_X);
+	//print_string(tablica, sizeof(tablica)-1, 0, LCD_MAX_X);
+	//print_string(string2, sizeof(string2)-1, 0, LCD_MAX_X-16);
+	//string4 = NULL;
+
+	//for(int i=0; i <  sizeof(tablica)-1; ++i)
+	//{
+		//print_letter_lcd(tablica, y_pos, x_pos);//tablica[i]
+		print_string_lcd(tablica, sizeof(tablica)-1, 0, LCD_MAX_X);
+	 //y_pos += 8;
+	//}	
+		
+		
+	}
+	
+	return 0;
+	
+	
+}
+

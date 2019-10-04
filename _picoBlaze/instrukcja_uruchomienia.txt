@@ -1,0 +1,8 @@
+W celu wdro¿enia programu w warunkach laboratoryjnych nale¿y:
+
+1. Uruchomiæ narzêdzie 'MobaXterm' i przejœæ do œcie¿ki katalogu:
+.../KoPico_bitstream
+
+
+2. Uruchomiæ polecenie:
+./mem_update.bash -m ../lab.mem -b kopico.bit -p

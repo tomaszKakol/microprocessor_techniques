@@ -1,0 +1,204 @@
+;./mem_update.bash -m ../lab.mem -b kopico.bit -p
+
+MEM "lab.mem"
+
+lcd_value DSOUT $30
+lcd_control DSOUT $31
+
+uart0_tx DSOUT $60 	 	 	 	      
+uart0_rx DSIN $60  			 		 
+uart0_status DSIN $61 				  
+uart0_int_mask DSIO $62 		
+
+lcd_enable EQU s7
+lcd_disable EQU s8
+lcd_data EQU s9
+counter EQU sA
+checker EQU sB
+
+a EQU s5
+statusa EQU s6
+
+op_5ms EQU 5
+opozn_1u EQU 24
+
+LOAD lcd_enable, %001
+LOAD lcd_disable, %000
+LOAD lcd_data, %011
+CALL delay_5ms
+CALL delay_5ms
+CALL delay_5ms
+
+LOAD s3, $38
+OUT s3,lcd_value              
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD s3, $38
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD s3, $38
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD s3, $38
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD s3, $06
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD s3, $0E
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD s3, $01
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD s3, $80
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+LOAD counter, 0
+
+koniec:
+IN statusa, uart0_status 
+
+
+TEST statusa, %00010000
+
+JUMP Z, koniec
+IN a,uart0_rx
+
+LOAD s3, a
+OUT s3,lcd_value
+OUT lcd_data,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+ADD counter, 1
+COMP counter, 16
+; If sX=kk, ZERO <- 1
+; If sX<kk, CARRY <- 1
+JUMP NZ, skip1
+
+LOAD s3, $C0
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+
+skip1:
+
+COMP counter, 32
+JUMP NZ, skip2
+JUMP clear
+
+LOAD s3, $80
+OUT s3,lcd_value
+OUT lcd_enable,lcd_control
+LOAD s0,s0
+OUT lcd_disable,lcd_control
+CALL delay_5ms
+LOAD counter, 0
+
+skip2:
+JUMP koniec
+
+
+;opoznienie ok 5ms
+delay_5ms: LOAD s4,op_5ms ;5
+delay:     CALL opoznij_1m
+           SUB s4,1
+           JUMP NZ, delay
+           RET
+
+opoznij_1u: LOAD s0, opozn_1u ;24
+czekaj_1u:  SUB s0, 1
+            JUMP NZ, czekaj_1u
+	        RET
+	
+opoznij_40u: LOAD s1,40 ;36
+czekaj_40u:  CALL opoznij_1u
+	         SUB s1,1
+	         JUMP NZ, czekaj_40u
+	         RET
+	
+opoznij_1m: LOAD s2,25
+czekaj_1m:  CALL opoznij_40u
+	        SUB s2,1
+	        JUMP NZ, czekaj_1m
+	        RET
+	
+opoznij_80u:CALL opoznij_40u
+			CALL opoznij_40u	
+			RET
+
+
+clear:
+	IN statusa, uart0_status 
+	
+	TEST statusa, %00010000
+	JUMP Z, clear
+	IN a,uart0_rx
+	
+	LOAD s3, 0
+	OUT s3,lcd_value
+	OUT lcd_data,lcd_control
+	LOAD s0,s0
+	OUT lcd_disable,lcd_control
+	CALL delay_5ms
+	
+	ADD counter, 1
+	COMP counter, 16
+	JUMP NZ, skip3
+	
+	LOAD s3, $C0
+	OUT s3,lcd_value
+	OUT lcd_enable,lcd_control
+	LOAD s0,s0
+	OUT lcd_disable,lcd_control
+	CALL delay_5ms
+	
+	skip3:
+	COMP counter, 32
+	JUMP NZ, skip4
+	
+	LOAD s3, $80
+	OUT s3,lcd_value
+	OUT lcd_enable,lcd_control
+	LOAD s0,s0
+	OUT lcd_disable,lcd_control
+	CALL delay_5ms
+	LOAD counter, 0
+	
+	skip4:
+	RET

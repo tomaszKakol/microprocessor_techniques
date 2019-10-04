@@ -1,0 +1,273 @@
+//#define LED_ON_LCD
+#include "Board_LED.h"                  // ::Board Support:LED
+#include "LPC17xx.h"                    // Device header
+#include "PIN_LPC17xx.h"                // Keil::Device:PIN
+#include "lcd_lib/Open1768_LCD.h"
+#include "lcd_lib/LCD_ILI9325.h"
+#include "lcd_lib/asciiLib.h"
+
+
+//#include <lpc17xx.h>
+//#include "lcd.h"
+//#include "delay.h"
+
+int msTicks = 0; 
+
+// UART functions
+void initUART(void);
+void sendString(char *str);
+char receiveChar(void);
+void receiveSendUart(void);
+
+// LCD functions
+void initLCD(void);
+void drawASCII(int x, int y, unsigned char * buff);
+void byteToArray(unsigned char * buff, int* nbuff, int level);
+void enableLCDTouchInterruption(void);
+void drawXLine(void);
+void drawRectangle(int x, int y, int width, int height);
+
+// TIMER functions
+void wait(int timewait); // delay function based on SysTick
+
+// deprecated
+void delay(void);
+
+
+//------------ UART --------------
+void initUART()
+{
+	// line control register 
+	// DLAB = 1; word length = 11 - 8b
+	LPC_UART0->LCR = (1<<7) | 3;
+	// ustawienie czêstotliwoœci zale¿ne od baud
+	LPC_UART0->DLL = 13;
+	LPC_UART0->DLM = 0;
+	
+	// wylaczenie ustawien czestotliwosci i przejscie do odczytywania danych
+	// DLAB = 0
+	LPC_UART0->LCR = 3;
+	
+	// PIN_Configure (port, pin, function, mode, open_drain)
+	// TXD
+	PIN_Configure(0,2,1,0,0);
+	// RXD
+	PIN_Configure(0,3,1,0,0);
+
+	sendString("none");
+}
+
+void sendString(char *str) {
+	int i = 0;
+	for(i = 0; str[i] != '\0'; i++) {
+		while(!(LPC_UART0->LSR & (1<<5)));
+		LPC_UART0->THR = str[i];
+	}
+}
+
+char receiveChar() {
+	while(!(LPC_UART0->LSR & 1)); 
+	return LPC_UART0->RBR;
+}
+
+void receiveSendUart()
+{
+		while(1) {
+			char sign = receiveChar();
+			LPC_UART0->THR = sign+1;
+		}
+}
+
+// ---------------- end UART -------------
+
+// ---------------- LCD ---------------
+
+void initLCD()
+{
+		// inicjacja pinów do komunikacji z LCD
+	lcdConfiguration();
+	
+	// OSCIL_ON (0x00)
+	
+	uint16_t regist = lcdReadReg(OSCIL_ON);
+
+	
+	if(regist == 0x8989 ) { sendString("aaa"); }
+	if(regist == 0x9325) { sendString("bbbb"); }
+	// this one !
+	// 0x9328
+	// ILI9328
+	if( regist == 0x9328) { sendString("cccc");} // << this one
+	
+	init_ILI9325();
+	
+	// working 
+	// wyswietlanie kolorowych punktow na srodku LCD
+	// dzia³aj¹ca autoinkrementacja
+	//
+		lcdWriteReg(ADRX_RAM, 120);
+		lcdWriteReg(ADRY_RAM, 160);
+		lcdWriteReg(DATA_RAM, LCDRed);
+	/*
+		void GetASCIICode(int font, unsigned char* pBuffer, unsigned char ASCII)
+		{
+			 memcpy(pBuffer, AsciiLib[font][(ASCII - 32)], 16);
+		}
+	*/
+		unsigned char pbuff[16];
+		GetASCIICode(0, pbuff, 'A');
+		//GetASCIICode(1, pbuff, 'B');
+		//GetASCIICode(2, pbuff, 'C');
+		//GetASCIICode(3, pbuff, 'D');
+		
+		drawASCII(10, 10, pbuff);	
+		//drawXLine();
+		//drawRectangle(120,100,100,100);
+}
+
+void drawASCII(int x, int y, unsigned char * buff) {
+	
+	lcdWriteReg(ADRX_RAM, x);
+	for(int i = 0; i < 16; i++) {
+		lcdWriteReg(ADRY_RAM, y + i);
+		int nbuff[8] = {0};
+		
+		byteToArray(buff, nbuff, i);
+		for(int j = 0; j < 8; j++) {
+			lcdWriteReg(DATA_RAM, LCDBlack);
+			
+			if (nbuff[j] == 0)
+			{
+				  lcdWriteReg(DATA_RAM, LCDWhite);
+			}else
+					lcdWriteReg(DATA_RAM, LCDBlack);
+			
+		}
+	}
+}
+
+void byteToArray(unsigned char * buff, int* nbuff, int level) {
+
+		
+		unsigned char byte = buff[level];
+		
+		unsigned char testByte = 1;
+		for (int i = 0; i < 8; i++)
+		{
+				if ((byte & testByte) == 0)
+						nbuff[i] = 0;
+				else
+						nbuff[i] = 1;
+				testByte = testByte << 1;
+		}
+}
+
+
+void drawXLine(void) {
+	lcdWriteReg(ADRX_RAM, 0);
+	lcdWriteReg(ADRY_RAM, 0);
+	for(int i = 0; i < 10; i++) {
+		lcdWriteReg(DATA_RAM, LCDRed);
+	}
+}
+
+void drawRectangle(int x, int y, int width, int height) {
+	
+	lcdWriteReg(ADRX_RAM, x);
+	for(int i = 0; i < height; i++) {
+		lcdWriteReg(ADRY_RAM, y + i);
+				
+		for(int j = 0; j < width; j++) {
+			lcdWriteReg(DATA_RAM, LCDRed);
+		}
+	}
+}
+
+void enableLCDTouchInterruption()
+{
+	// LCD
+	//	LPC_GPIOINT->IO0IntEnF = 1 << 19;
+	//	NVIC_EnableIRQ(EINT3_IRQn);
+}
+
+// ------------ end LCD --------------
+
+// ---------- TIMER ------------
+void wait(int timewait) {
+	msTicks = 0;
+	while(msTicks < timewait);
+}
+
+void delay() {
+	int time = 1000000;
+	while(time > 0) {
+		time -= 1;
+	}
+	return;
+}
+
+
+void SysTick_Handler() {
+	msTicks++;
+}
+
+
+
+void TIMER0_IRQHandler() {
+	sendString("PING");
+	LPC_TIM0->IR = 1;
+}
+
+void EINT3_IRQHandler() {
+	sendString("bang");
+	LPC_GPIOINT->IO0IntClr = 1 << 19;
+}
+
+void initTimer()
+{
+		LPC_TIM0->PR = 0;
+		LPC_TIM0->MR0 = 12500000;
+		LPC_TIM0->MCR = 3;
+		LPC_TIM0->TCR = 1;
+		NVIC_EnableIRQ(TIMER0_IRQn);
+}
+
+
+
+// ------------ main ----------
+
+int main() {
+
+	initUART();
+	sendString("bumbumbumbumbumbumbum");
+	initLCD();
+	while(1) ;
+	
+	
+}
+
+/*
+int main()
+{
+	SystemInit();                         //Clock and PLL configuration
+
+	INIT_PORTS();													//Sets the direction and initializes the lcd module
+		
+	while(1){
+//Test sending characters
+		SEND_CMD(0x80);	
+		SEND_CHAR_DATA('T');		
+		SEND_CHAR_DATA('E');		
+		SEND_CHAR_DATA('S');		
+		SEND_CHAR_DATA('T');		
+		SEND_CMD(0xC0);	
+//Test sending strings
+		SEND_STRING_DATA("Etiq");		
+		SEND_CMD(0xC9);	
+		SEND_STRING_DATA("Tech");		
+		delay_ms(1000);
+		SEND_CMD(0x01);
+	}
+}
+*/
+//

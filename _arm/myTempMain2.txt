@@ -1,0 +1,208 @@
+#include "lcd_lib/Open1768_LCD.h"
+#include "lcd_lib/LCD_ILI9325.h"
+#include "lcd_lib/asciiLib.h"
+#define N 16
+
+
+volatile uint32_t msTicks;
+
+void SysTick_Handler(void)  {                               // SysTick interrupt Handler.
+  msTicks++;                                                 //  See startup file startup_LPC17xx.s for SysTick vector
+}
+
+void wait(int d){
+	msTicks = 0;
+	while(msTicks <= d);
+}
+
+void sleep(int j)
+{
+	while(j > 0)
+		--j;
+}
+
+
+void print_letter(char letter, int y_pos, int x_pos)
+{
+
+			int j = 0;
+			int i = 0;
+			unsigned char pBuffer[N];
+			unsigned char mask = 128;
+
+			GetASCIICode(1, pBuffer, letter);
+			lcdWriteReg(ADRX_RAM, x_pos);
+			lcdWriteReg(ADRY_RAM, y_pos);
+			for( i = 0; i < N; ++i)
+			{
+					for( j = 0; j < 8; ++j)
+					{
+						
+						if (pBuffer[i] & mask)
+						{	
+								lcdWriteReg(ADRX_RAM, x_pos - i);
+								lcdWriteReg(ADRY_RAM, y_pos + j);
+								lcdWriteReg(DATA_RAM, LCDMagenta);
+						}
+						mask = mask >> 1;
+					}
+					mask = 128;
+			}
+}
+
+
+void print_string(char* string, int string_size, int y_pos, int x_pos)
+{
+	int i;
+	
+	for(i=0; i <  string_size; ++i)
+	{
+		print_letter(string[i], y_pos, x_pos);
+		y_pos += 8;
+	}
+	
+}
+
+int main(void)
+{
+	const int lcd_size = LCD_MAX_X * LCD_MAX_Y;
+	int j = 0;
+	int i = 0;
+	unsigned char pBuffer[N];
+	unsigned char mask = 128;
+	
+	int y_pos, x_pos;
+	char string[] = "ABCD";
+	char string2[] = "EFGH";
+
+	
+	lcdConfiguration();
+	//temp = lcdReadReg(OSCIL_ON);
+	init_ILI9325();
+	lcdWriteReg(ADRX_RAM, 0);
+	lcdWriteReg(ADRY_RAM, 0);
+	
+	while(j < lcd_size/2)
+	{
+		lcdWriteReg(DATA_RAM, LCDWhite);
+		++j;
+	}
+		while(j < lcd_size)
+	{
+		lcdWriteReg(DATA_RAM, LCDRed);
+		++j;
+	}
+
+	print_string(string, sizeof(string)-1, 0, LCD_MAX_X);
+	print_string(string2, sizeof(string2)-1, 0, LCD_MAX_X-16);
+	
+	
+	while(1);
+}
+
+
+
+
+/*
+#include "lcd_lib/Open1768_LCD.h"
+#include "lcd_lib/LCD_ILI9325.h"
+#include "lcd_lib/asciiLib.h"
+#define N 16
+
+
+volatile uint32_t msTicks;
+
+void SysTick_Handler(void)  {                               // SysTick interrupt Handler.
+  msTicks++;                                                 //  See startup file startup_LPC17xx.s for SysTick vector
+}
+
+void wait(int d){
+	msTicks = 0;
+	while(msTicks <= d);
+}
+
+void sleep(int j)
+{
+	while(j > 0)
+		--j;
+}
+
+
+void print_letter(char letter, int y_pos, int x_pos)
+{
+
+			int j = 0;
+			int i = 0;
+			unsigned char pBuffer[N];
+			unsigned char mask = 128;
+
+			GetASCIICode(1, pBuffer, letter);
+			lcdWriteReg(ADRX_RAM, x_pos);
+			lcdWriteReg(ADRY_RAM, y_pos);
+			for( i = 0; i < N; ++i)
+			{
+					for( j = 0; j < 8; ++j)
+					{
+						
+						if (pBuffer[i] & mask)
+						{	
+								lcdWriteReg(ADRX_RAM, x_pos - i);
+								lcdWriteReg(ADRY_RAM, y_pos + j);
+								lcdWriteReg(DATA_RAM, LCDMagenta);
+						}
+						mask = mask >> 1;
+					}
+					mask = 128;
+			}
+}
+
+
+void print_string(char* string, int string_size, int y_pos, int x_pos)
+{
+	int i;
+	
+	for(i=0; i <  string_size; ++i)
+	{
+		print_letter(string[i], y_pos, x_pos);
+		y_pos += 8;
+	}
+	
+}
+
+int main(void)
+{
+	const int lcd_size = LCD_MAX_X * LCD_MAX_Y;
+	int j = 0;
+	int i = 0;
+	unsigned char pBuffer[N];
+	unsigned char mask = 128;
+	
+	int y_pos, x_pos;
+	char string[] = "Moje imie milijon, bo za milijony";
+	char string2[] = "kocham i cierpie katusze";
+
+	
+	lcdConfiguration();
+	//temp = lcdReadReg(OSCIL_ON);
+	init_ILI9325();
+	lcdWriteReg(ADRX_RAM, 0);
+	lcdWriteReg(ADRY_RAM, 0);
+	
+	while(j < lcd_size/2)
+	{
+		lcdWriteReg(DATA_RAM, LCDWhite);
+		++j;
+	}
+		while(j < lcd_size)
+	{
+		lcdWriteReg(DATA_RAM, LCDRed);
+		++j;
+	}
+
+	print_string(string, sizeof(string)-1, 0, LCD_MAX_X);
+	print_string(string2, sizeof(string2)-1, 0, LCD_MAX_X-16);
+	
+	
+	while(1);
+}
+*/

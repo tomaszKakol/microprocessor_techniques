@@ -1,0 +1,78 @@
+iMPACT Version: Jun 22 2010 01:00:08
+
+iMPACT log file Started on Thu Jan 24 17:52:01 2019
+
+Preference Table
+Name                 Setting             
+StartupClock         Auto_Correction     
+AutoSignature        False               
+KeepSVF              False               
+ConcurrentMode       False               
+UseHighz             False               
+ConfigOnFailure      Stop                
+UserLevel            Novice              
+MessageLevel         Detailed            
+svfUseTime           false               
+SpiByteSwap          Auto_Correction     
+AutoInfer            false               
+SvfPlayDisplayComments false               
+Connecting to cable (Usb Port - USB21).
+Checking cable driver.
+ Driver file xusb_emb.sys found.
+ Driver version: src=1029, dest=1029.
+ Driver windrvr6.sys version = 8.1.1.0. WinDriver v8.11 Jungo (c) 1997 - 2007 Build Date: Feb 28 2007 x86_64 64bit SYS09:48:01, version = 811.
+ Cable PID = 0008.
+ Max current requested during enumeration is 74 mA.
+Type = 0x0004.
+ Cable Type = 3, Revision = 0.
+ Setting cable speed to 12 MHz.
+Cable connection established.
+Firmware version = 1303.
+File version of C:/Xilinx/12.2/ISE_DS/ISE/data/xusb_xlp.hex = 1303.
+Firmware hex file version = 1303.
+PLD file version = 0012h.
+ PLD version = 0012h.
+Type = 0x0004.
+ ESN device is not available for this cable.
+Identifying chain contents...'0': : Manufacturer's ID = Xilinx xc5vlx50t, Version : 12
+INFO:iMPACT:1777 - 
+   Reading C:/Xilinx/12.2/ISE_DS/ISE/virtex5/data/xc5vlx50t.bsd...
+INFO:iMPACT:501 - '1': Added Device xc5vlx50t successfully.
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+done.
+Elapsed time =      0 sec.
+Elapsed time =      0 sec.
+Elapsed time =      0 sec.
+Elapsed time =      0 sec.
+'1': Loading file 'kopico.bit' ...
+done.
+INFO:iMPACT:2257 - Startup Clock has been changed to 'JtagClk' in the bitstream   stored in memory,
+   but the original bitstream file remains unchanged.
+UserID read from the bitstream file = 0xFFFFFFFF.
+INFO:iMPACT:501 - '1': Added Device xc5vlx50t successfully.
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+Maximum TCK operating frequency for this device chain: 33000000.
+Validating chain...
+Boundary-scan chain validated successfully.
+1: Device Temperature: Current Reading:   38.07 C, Min. Reading:   37.09 C, Max.Reading:   39.55 C
+1: VCCINT Supply: Current Reading:   0.999 V, Min. Reading:   0.996 V, Max.Reading:   1.005 V
+1: VCCAUX Supply: Current Reading:   2.496 V, Min. Reading:   2.484 V, Max.Reading:   2.511 V
+'1': Programming device...
+ Match_cycle = NoWait.
+Match cycle: NoWait
+ LCK_cycle = NoWait.
+LCK cycle: NoWait
+done.
+INFO:iMPACT:2219 - Status register values:
+INFO:iMPACT - 0011 1111 1111 1110 0000 1011 1000 0000 
+INFO:iMPACT:579 - '1': Completed downloading bit file to device.
+INFO:iMPACT:188 - '1': Programming completed successfully.
+ Match_cycle = NoWait.
+Match cycle: NoWait
+ LCK_cycle = NoWait.
+LCK cycle: NoWait
+INFO:iMPACT - '1': Checking done pin....done.
+'1': Programmed successfully.
+Elapsed time =      3 sec.
